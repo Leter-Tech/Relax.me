@@ -1,5 +1,5 @@
 # Relax.me
-Your Pocket-Sized Summer Escape
+Escape into serenity, find your calm
 
 - The project will not work on local system as I couldn't upload the audio files and background images due to github file limits.
 - Also, the database credentials have been removed to prevent misuse.
