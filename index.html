@@ -10,55 +10,84 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="REMOVED"
+    src="REMOVED"
+    type="text/javascript"
+    ></script>
     <script>
-  const firebaseConfig = {
-    apiKey: "REMOVED",
-    authDomain: "REMOVED",
-    databaseURL: "REMOVED",
-    projectId: "REMOVED",
-    storageBucket: "REMOVED",
-    messagingSenderId: "REMOVED",
-    appId: "REMOVED"
-  };
-        firebase.initializeApp(firebaseConfig);
-      
-          const database = firebase.database();
+        window.addEventListener("load", async function () {
+            await Clerk.load();
         
-          function formatDateToGMT530(date) {
-      const options = {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      };
-      return date.toLocaleString('en-IN', options).replace(',', '');
-    }
-    
-          document.addEventListener('click', function(event) {
+            function pam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+        
+            const redirectUrl = pam('redirect_url');
+        
+            if (!Clerk.user) {
+                if (redirectUrl) {
+                    setTimeout(() => {
+                        window.location.href = 'authentication.html';
+                    }, 12000);
+                } else {
+                    window.location.href = 'authentication.html';
+                }
+            } else {
+                document.getElementById("ss22").innerHTML = `
+                    <div id="user-button"></div>
+                `;
+        
+                const userButtonDiv = document.getElementById("user-button");
+                Clerk.mountUserButton(userButtonDiv);
+            }
+        });
+        
+          const firebaseConfig = {
+                apiKey: "REMOVED",
+                authDomain: "REMOVED",
+                databaseURL: "REMOVED",
+                projectId: "REMOVED",
+                storageBucket: "REMOVED",
+                messagingSenderId: "REMOVED",
+                appId: "REMOVED"
+          };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        function formatDateToGMT530(date) {
+              const options = {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+              };
+              return date.toLocaleString('en-IN', options).replace(',', '');
+        }
+        
+        document.addEventListener('click', function(event) {
             const element = event.target;
-    
+            const email = Clerk.user.emailAddresses[0]?.emailAddress;
+        
             const clickData = {
-              tagName: element.tagName,
-              id: element.id || null,
-              classList: Array.from(element.classList).join(' ') || null,
-              textContent: element.textContent.trim() || null,
-              timestamp: formatDateToGMT530(new Date()), page: document.title
+                tagName: element.tagName,
+                id: element.id || null,
+                classList: Array.from(element.classList).join(' ') || null,
+                textContent: element.textContent.trim() || null,
+                timestamp: formatDateToGMT530(new Date()),
+                userInfo: email,
+                page: document.title
             };
-            database.ref('Clicks').push(clickData)
-          });
-    </script>
-    <script>
-        function isMobile() {
-            return /Mobi|Android/i.test(navigator.userAgent);
-        }
+            database.ref('Clicks').push(clickData);
+        });
 
-        if (isMobile()) {
-            window.location.href = "mobile.html";
-        }
     </script>
 <style>
         * {
@@ -129,6 +158,7 @@
             font-size: 2rem;
             font-weight: bold;
             font-family: 'Roboto', sans-serif;
+            cursor: pointer;
         }
         .quote-container {
             flex-grow: 1;
@@ -214,7 +244,7 @@
         #toggleSoundControls {
             position: fixed;
             bottom: 2rem;
-            right: 5.5rem;
+            right: 8rem;
             z-index: 11;
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -235,7 +265,7 @@
         #ss1 {
             position: fixed;
             bottom: 2rem;
-            right: 2rem;
+            right: 4.7rem;
             z-index: 11;
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -252,6 +282,33 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
+
+        #ss22 {
+            position: fixed;
+            bottom: 2.1rem;
+            right: 2rem;
+            z-index: 11;
+            background-color: rgba(255, 255, 255, 0);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+
+        .cl-internal-1tk6k0j{
+            display: none;
+        }
+
+        .cl-userButtonPopoverFooter{
+            display: none;
+        }
+
+        .cl-internal-b3fm6y{
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -381,6 +438,7 @@ document.addEventListener('fullscreenchange', () => {
     <div class="controls">
     <button id="toggleSoundControls"><i style="margin-right: 4px;" class="fas fa-volume-up"></i> Sound Controls</button>
     <button id="ss1" onclick="toggleFullscreen()"><i class="fas fa-expand"></i></button>
+    <button id="ss22"><i class="far fa-user"></i></button>
     </div>
     <script>
         const clockElement = document.getElementById('clock');
@@ -506,7 +564,7 @@ window.addEventListener('load', () => {
   });
 });
 
-        let currentBackgroundIndex = 2;
+        let currentBackgroundIndex = 1;
         let backgroundImg = document.getElementById('background');
         const preloadedImages = [];
         let isChangingBackground = false;
@@ -564,9 +622,14 @@ window.addEventListener('load', () => {
 
         shuffleBackgroundBtn.addEventListener('click', debounce(shuffleBackground, 1000));
 
-
         toggleSoundControlsBtn.addEventListener('click', () => {
             soundControls.classList.toggle('hidden');
+            if (soundControls.classList.contains('hidden')) {
+                toggleSoundControlsBtn.innerHTML = '<i style="margin-right: 4px;" class="fas fa-volume-up"></i> Sound Controls'
+            }
+            else{
+                toggleSoundControlsBtn.innerHTML = '<i style="margin-right: 5px;" class="fas fa-chevron-right"></i> Sound Controls'
+            }
         });
 
         setInterval(updateClock, 1000);
