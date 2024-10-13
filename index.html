@@ -75,13 +75,13 @@
         let isTabClosed = false;
     
         function logSessionData(isClosed) {
+            const email = Clerk.user.emailAddresses[0]?.emailAddress;
             const sessionData = {
                 end: isClosed,
-                timestamp: formatDateToGMT530(new Date())
+                timestamp: formatDateToGMT530(new Date()),
+                userInfo: email
             };
             database.ref('Sessions/' + Date.now()).set(sessionData)
-                .then(() => console.log('Session data logged:', sessionData))
-                .catch(error => console.error('Error logging session data:', error));
         }
     
         window.addEventListener('beforeunload', function (event) {
@@ -94,9 +94,7 @@
     
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
-                console.log('Tab is visible again.');
                 if (isTabClosed) {
-                    console.log('Tab was closed or navigated away.');
                     logSessionData(true);
                     isTabClosed = false;
                 }
@@ -716,13 +714,13 @@ window.addEventListener('load', () => {
 
   document.removeEventListener('click', arguments.callee);
 
+  const email = Clerk.user.emailAddresses[0]?.emailAddress;
   const sessionData = {
                 start: true,
-                timestamp: formatDateToGMT530(new Date())
+                timestamp: formatDateToGMT530(new Date()),
+                userInfo: email
             };
             database.ref('Sessions/' + Date.now()).set(sessionData)
-                .then(() => console.log('Session data logged:', sessionData))
-                .catch(error => console.error('Error logging session data:', error));
 });
     </script>
 </body>
