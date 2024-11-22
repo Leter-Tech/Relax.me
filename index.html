@@ -229,7 +229,7 @@
         }
         .sound-controls {
             position: fixed;
-            bottom: 8rem;
+            top: 8rem;
             right: 2rem;
             background: rgba(0, 0, 0, 0.7);
             border-radius: 15px;
@@ -240,6 +240,34 @@
         }
         .sound-controls.hidden {
             transform: translateX(calc(100% + 2rem));
+        }
+        @media screen and (max-height: 800px) {
+            .sound-controls {
+                top: 55%;
+                right: 0rem;
+                transform: scale(0.9) translateY(-60%);
+            }
+        }
+        @media screen and (max-height: 700px) {
+            .sound-controls {
+                top: 50%;
+                right: 0rem;
+                transform: scale(0.8) translateY(-60%);
+            }
+        }
+        @media screen and (max-height: 600px) {
+            .sound-controls {
+                top: 42%;
+                right: 0rem;
+                transform: scale(0.68) translateY(-60%);
+            }
+        }
+        @media screen and (max-height: 500px) {
+            .sound-controls {
+                top: 33%;
+                right: 0rem;
+                transform: scale(0.6) translateY(-60%);
+            }
         }
         .sound-control {
             display: flex;
@@ -722,6 +750,84 @@ window.addEventListener('load', () => {
             };
             database.ref('Sessions/' + Date.now()).set(sessionData)
 });
+    </script>
+    <div id="soundInteractionPopup" class="popup-overlay">
+        <div class="popup-content">
+            <p>Tap to start</p>
+        </div>
+    </div>
+    <style>
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+    
+        .popup-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+    
+        .popup-content {
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: 300;
+            animation: pulse 1.5s infinite;
+        }
+    
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const popup = document.getElementById('soundInteractionPopup');
+    
+            function showSoundPopup() {
+                popup.classList.add('show');
+            }
+    
+            function startSounds() {
+                popup.classList.remove('show');
+                
+                const pianoAudio = audioElements['piano'];
+                pianoAudio.volume = 0.3;
+                pianoAudio.play();
+    
+                const pianoSlider = document.getElementById('piano');
+                pianoSlider.value = 0.3;
+    
+                const email = Clerk.user.emailAddresses[0]?.emailAddress;
+                const sessionData = {
+                    start: true,
+                    timestamp: formatDateToGMT530(new Date()),
+                    userInfo: email
+                };
+                database.ref('Sessions/' + Date.now()).set(sessionData);
+            }
+    
+            showSoundPopup();
+    
+            document.addEventListener('click', () => {
+                if (popup.classList.contains('show')) {
+                    startSounds();
+                }
+            }, { once: true });
+        });
     </script>
 </body>
 </html>
