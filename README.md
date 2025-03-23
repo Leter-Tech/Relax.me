@@ -147,14 +147,14 @@ graph TD
     B -->|Authentication| G[Clerk]
     B -->|UI & Visuals| H[Font Awesome & Google Fonts]
 
-    style A fill:#004aad,color:white
-    style B fill:#004aad,color:white
-    style C fill:#004aad,color:white
-    style D fill:#004aad,color:white
-    style E fill:#004aad,color:white
-    style F fill:#004aad,color:white
-    style G fill:#004aad,color:white
-    style H fill:#004aad,color:white
+    style A fill:#0097b2,color:white
+    style B fill:#0097b2,color:white
+    style C fill:#0097b2,color:white
+    style D fill:#0097b2,color:white
+    style E fill:#0097b2,color:white
+    style F fill:#0097b2,color:white
+    style G fill:#0097b2,color:white
+    style H fill:#0097b2,color:white
 ```
 
 - **Frontend:** HTML + CSS  
