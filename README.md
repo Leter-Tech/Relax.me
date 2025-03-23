@@ -139,7 +139,6 @@ Relax.me offers a complete emotional care system through:
 
 ```mermaid
 graph TD
-graph TD
     A[User] -->|Interacts| B[Frontend: HTML & CSS]
     B -->|App Logic| C[Backend: JavaScript]
     C -->|Realtime Sync| D[Firebase Realtime Database]
