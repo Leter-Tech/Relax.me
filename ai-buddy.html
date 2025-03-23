@@ -1,0 +1,2325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relax.me - AI Buddy</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="REMOVED"
+    src="REMOVED"
+    type="text/javascript"
+    ></script>
+    
+    
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.24.0";
+        
+        let geminiModel;
+        
+        async function initializeGemini() {
+            try {
+                const API_KEY = "REMOVED"; 
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                console.log("AI Model initialized successfully");
+            } catch (error) {
+                console.error("Failed to initialize AI Model:", error);
+            }
+        }
+        
+        initializeGemini();
+        
+        async function getAIBuddyResponse(buddyName, buddyPersonality, userScenario, messageHistory, userName) {
+            if (!geminiModel) {
+                console.error("AI model not initialized");
+                return "I'm sorry, I'm having trouble connecting. Please try again in a moment.";
+            }
+            
+
+            let personalityDescription = "";
+            
+
+            const personalityMap = {
+                "empathetic": "You are deeply compassionate and understanding. You validate emotions and show genuine concern for the user's feelings.",
+                "supportive": "You actively encourage the user's goals and aspirations, offering positive reinforcement.",
+                "patient": "You never rush the conversation and take time to fully understand the user before responding.",
+                "wise": "You share thoughtful insights and perspectives, drawing on deep knowledge and experience.",
+                "optimistic": "You focus on hope and possibilities, helping find the positive in difficult situations.",
+                "gentle": "Your approach is soft and kind, never harsh or judgmental in your responses.",
+                "honest": "You provide truthful perspectives while maintaining kindness and respect.",
+                "humorous": "You use appropriate humor to lighten conversations when it might help ease tension.",
+                "practical": "You offer realistic, actionable advice that can be implemented by the user.",
+                "creative": "You think outside the box and suggest innovative approaches to problems.",
+                "analytical": "You help break down complex situations into understandable components.",
+                "philosophical": "You explore deeper meanings and existential perspectives on life challenges.",
+                "motivational": "You actively inspire and energize the user to take positive action.",
+                "calm": "You maintain a peaceful presence even during emotional discussions.",
+                "friendly": "You create a warm, conversational atmosphere like talking to a good friend.",
+                "nurturing": "You provide emotional support and care like a trusted mentor.",
+                "adaptable": "You adjust your communication style based on the user's current needs.",
+                "mindful": "You emphasize present-moment awareness and acceptance in your guidance.",
+                "reflective": "You help the user see patterns in their thoughts and behaviors.",
+                "spiritual": "You incorporate non-denominational wisdom traditions when appropriate.",
+            };
+            
+
+            buddyPersonality.forEach(trait => {
+                if (personalityMap[trait]) {
+                    personalityDescription += personalityMap[trait] + " ";
+                }
+            });
+            
+
+            if (!personalityDescription) {
+                personalityDescription = "You are a supportive, empathetic companion who listens carefully and responds thoughtfully.";
+            }
+            
+
+            const systemPrompt = `You are ${buddyName}, an AI companion designed to provide support and conversation to ${userName}. 
+            
+PERSONALITY AND BEHAVIOR:
+${personalityDescription}
+
+CURRENT CONVERSATION CONTEXT:
+The user (${userName}) has described the following scenario or topic they want to discuss: "${userScenario}"
+
+IMPORTANT GUIDELINES:
+1. Always stay in character as ${buddyName} with the personality traits described above.
+2. Keep responses conversational, warm, and engaging - like a trusted friend would talk.
+3. Use a natural, friendly tone with some variation in sentence length.
+4. Keep responses concise (3-5 sentences) but substantive.
+5. If the user seems distressed, prioritize emotional support before problem-solving.
+6. Avoid clinical or overly formal language - this is a friendly conversation.
+7. Never claim to be a replacement for professional mental health services.
+8. If the user mentions serious mental health concerns, gently suggest professional support.
+9. Remember details the user has shared previously in this conversation.
+10. End your responses in ways that naturally continue the conversation.
+11. Do not greet the user repeatedly; treat this as a continuous conversation.
+12. Do not respond to any highly off-topic query or anything that involves NSFW or unethical stuff. Just gently nudge them to change the conversation if any.
+`;
+
+
+            const conversationHistory = messageHistory.map(msg => {
+                const role = msg.sender === 'user' ? userName : buddyName;
+                return `${role}: ${msg.message}`;
+            }).join('\n');
+            
+            let latestUserMessage = "";
+            
+            if (messageHistory.length > 0) {
+                latestUserMessage = messageHistory[0].message;
+            } else {
+                console.error("No message found in message history");
+            }
+            
+            const prompt = `${systemPrompt}
+
+CONVERSATION HISTORY:
+${conversationHistory}
+
+${userName}: ${latestUserMessage}
+
+${buddyName}:`;
+            
+            try {
+                console.log(prompt)
+                const result = await geminiModel.generateContent([prompt]);
+                const response = await result.response.text();
+                return response.trim();
+            } catch (error) {
+                console.error("Error calling AI API:", error, "Message attempted:", latestUserMessage);
+                return "I'm having trouble thinking of a response right now. Could we try a different approach to this conversation?";
+            }
+        }
+        
+
+        window.getAIBuddyResponse = getAIBuddyResponse;
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        .content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 2rem;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #clock {
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+        }
+        
+        
+        .buddy-container {
+            display: flex;
+            height: calc(100vh - 180px);
+            gap: 1.5rem;
+        }
+        
+        
+        .buddy-setup {
+            width: 350px;
+            min-width: 350px;
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .buddy-setup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.4rem;
+        }
+        
+        .buddy-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .buddy-setup-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        
+        .buddy-setup-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .buddy-setup-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .buddy-setup-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        .setup-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .setup-section-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 0.7rem;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+        }
+        
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+        }
+        
+        .avatar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-preview i {
+            font-size: 3rem;
+            opacity: 0.5;
+        }
+        
+        .personality-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .personality-tag {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .personality-tag.selected {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+        
+        .create-buddy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .create-buddy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .notification {
+            padding: 0.7rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification.success {
+            background: rgba(39, 174, 96, 0.2);
+            border: 1px solid rgba(39, 174, 96, 0.4);
+        }
+        
+        .notification.error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.4);
+        }
+        
+        
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            max-width: calc(100% - 380px);
+        }
+        
+        .chat-header {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            overflow: hidden;
+        }
+        
+        .chat-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .chat-avatar i {
+            font-size: 1.5rem;
+            opacity: 0.7;
+        }
+        
+        .chat-buddy-info {
+            flex-grow: 1;
+        }
+        
+        .chat-buddy-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        
+        .chat-buddy-scenario {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+        }
+        
+        .chat-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .chat-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .chat-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .messages-container {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .messages-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 1rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message.user-message {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.buddy-message {
+            background: rgba(66, 66, 66, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-sender {
+            font-size: 0.8rem;
+            margin-bottom: 0.1rem;
+            opacity: 0.8;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            position: absolute;
+            bottom: 0.5rem;
+            right: 1rem;
+            margin-top: 8px; 
+        }
+        
+        .chat-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .chat-input {
+            flex-grow: 1;
+            padding: 1rem;
+            border-radius: 25px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+        }
+        
+        .send-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        
+        .empty-chat {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .empty-chat-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            opacity: 0.3;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .empty-chat-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-chat-description {
+            max-width: 500px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
+        
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+            transform: translateY(50px);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+        
+        .close-modal:hover {
+            opacity: 1;
+        }
+        
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+        }
+        
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            margin-right: 4px;
+            animation: typingAnimation 1.5s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.6s;
+            margin-right: 0;
+        }
+        
+        @keyframes typingAnimation {
+            0% { opacity: 0.3; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-5px); }
+            100% { opacity: 0.3; transform: translateY(0); }
+        }
+        
+        
+        #ss1 {
+            position: fixed;
+            bottom: 2rem;
+            right: 4.7rem;
+            z-index: 11;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        #ss1:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #ss22 {
+            position: fixed;
+            bottom: 2.1rem;
+            right: 2rem;
+            z-index: 11;
+            background-color: rgba(255, 255, 255, 0);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        #homeBtn {
+            position: fixed;
+            bottom: 2rem;
+            right: 8rem;
+            z-index: 11;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        #homeBtn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .cl-internal-1tk6k0j{
+            display: none;
+        }
+        .cl-userButtonPopoverFooter{
+            display: none;
+        }
+        .cl-internal-b3fm6y{
+            display: none;
+        }
+        @font-face {
+            font-family: Gidiff;
+            src: url("GlacialIndifference-Regular.otf") format("opentype");
+        }
+        .logo {
+            cursor: pointer;
+            width: max-content;
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 11;
+        }
+        .logo h1 {
+            font-family: 'Gidiff', sans-serif;
+            font-size: 25px;
+            color: white;
+            margin: 0;
+            font-weight: 400 !important;
+        }
+
+        
+        .toast {
+            min-width: 250px;
+            margin-bottom: 10px;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s, fadeOut 0.5s 2.5s;
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        .toast.success {
+            background-color: rgba(39, 174, 96, 0.9);
+        }
+
+        .toast.error {
+            background-color: rgba(231, 76, 60, 0.9);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            position: absolute;
+            bottom: 0.5rem;
+            right: 1rem;
+            margin-top: 8px; 
+        }
+
+        
+        .buddy-setup {
+            width: 350px;
+            min-width: 350px;
+        }
+
+        .chat-container {
+            max-width: calc(100% - 380px);
+        }
+    </style>
+</head>
+<body>
+    <style>
+    
+        .zoom-notification {
+            --primary-color: #333;
+            --secondary-color: rgb(221, 221, 221);
+            font-family: 'Arial', sans-serif;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(199, 197, 198, 0.2);
+            z-index: 9999999999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .zoom-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 550px;
+        }
+
+        .zoom-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .zoom-content p {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .key {
+            display: inline-block;
+            background-color: #f0f0f0;
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            padding: 8px 15px;
+            margin: 0 5px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 18px;
+            color: #333333;
+            box-shadow: 0 4px 0 #d0d0d0;
+            transition: all 0.1s ease;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .key:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d0d0d0;
+        }
+
+        .icon-zoom {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .width-info {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--primary-color);
+        }
+
+        #CurrentHeight, #requiredHeight {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #CurrentWidth, #requiredWidth {
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+    <div class="zoom-notification" id="zoomNotification">
+        <div class="zoom-content">
+        <div class="icon-zoom">🔍</div>
+        <h2>Please Adjust Your Viewport</h2>
+        <p style="font-size: 14px;">For the best experience, press these keys together on your keyboard until your current height reaches the required width:</p>
+        <p><span class="key">CTRL</span> and <span class="key">-</span></p>
+        <div class="width-info">
+        <p>Current Height: <span id="CurrentHeight"></span><strong>px</strong></p>
+        <p>Required Height: <span id="CurrentHeight">826</span><strong>px</strong></p>
+        <hr>
+        <p>Current Width: <span id="CurrentWidth"></span><strong>px</strong></p>
+        <p>Required Width: <span id="CurrentWidth">1430</span><strong>px</strong></p>
+
+        </div>
+        </div>
+        </div>
+        <script>
+            const zoomNotification = document.getElementById('zoomNotification');
+            const CurrentHeightSpan = document.getElementById('CurrentHeight');
+            const CurrentWidthSpan = document.getElementById('CurrentWidth');
+
+            function checkViewportWidth() {
+                const CurrentHeight = window.innerHeight;
+                const CurrentWidth = window.innerWidth;
+                CurrentHeightSpan.textContent = CurrentHeight;
+                CurrentWidthSpan.textContent = CurrentWidth;
+    
+                if (CurrentHeight < 826 || CurrentWidth < 1430) {
+                    zoomNotification.style.display = 'flex';
+                } else {
+                    zoomNotification.style.display = 'none';
+                }
+            }
+    
+            window.addEventListener('resize', checkViewportWidth);
+            window.addEventListener('load', checkViewportWidth);
+        </script>
+    <img id="background" src="assets/background7.png" alt="background">
+    <div class="overlay"></div>
+    
+    <div class="content">
+        <div class="top-bar">
+            <div id="clock"></div>
+            <button class="control-btn" id="shuffleBackground"><i style="margin-right: 3px;" class="fas fa-image"></i> Change Background</button>
+        </div>
+        
+        <div class="buddy-container">
+            
+            <div class="buddy-setup">
+                <div class="buddy-setup-header">
+                    <h2 class="buddy-title">My AI Buddy</h2>
+                </div>
+                                
+                <div class="buddy-setup-content">
+                    <div class="setup-section">
+                        <div class="avatar-container">
+                            <div class="avatar-preview" id="avatarPreview">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                            <button class="control-btn" id="uploadAvatarBtn">Choose Avatar</button>
+                        </div>
+                                
+                        <div class="input-group">
+                            <label for="buddyName">Name your AI buddy</label>
+                            <input type="text" id="buddyName" placeholder="Enter a name" maxlength="20">
+                        </div>
+                    </div>
+                    
+                    <div class="setup-section">
+                        <h3 class="setup-section-title"><i class="fas fa-brain"></i> Personality</h3>
+                        <p style="margin-bottom: 1rem; font-size: 0.9rem; opacity: 0.7;">Select personality traits for your AI buddy (up to 5):</p>
+                        
+                        <div class="personality-tags" id="personalityTags">
+                            <div class="personality-tag" data-trait="empathetic">Empathetic</div>
+                            <div class="personality-tag" data-trait="supportive">Supportive</div>
+                            <div class="personality-tag" data-trait="patient">Patient</div>
+                            <div class="personality-tag" data-trait="wise">Wise</div>
+                            <div class="personality-tag" data-trait="optimistic">Optimistic</div>
+                            <div class="personality-tag" data-trait="gentle">Gentle</div>
+                            <div class="personality-tag" data-trait="honest">Honest</div>
+                            <div class="personality-tag" data-trait="humorous">Humorous</div>
+                            <div class="personality-tag" data-trait="practical">Practical</div>
+                            <div class="personality-tag" data-trait="creative">Creative</div>
+                            <div class="personality-tag" data-trait="analytical">Analytical</div>
+                            <div class="personality-tag" data-trait="philosophical">Philosophical</div>
+                            <div class="personality-tag" data-trait="motivational">Motivational</div>
+                            <div class="personality-tag" data-trait="calm">Calm</div>
+                            <div class="personality-tag" data-trait="friendly">Friendly</div>
+                            <div class="personality-tag" data-trait="nurturing">Nurturing</div>
+                            <div class="personality-tag" data-trait="adaptable">Adaptable</div>
+                            <div class="personality-tag" data-trait="mindful">Mindful</div>
+                            <div class="personality-tag" data-trait="reflective">Reflective</div>
+                            <div class="personality-tag" data-trait="spiritual">Spiritual</div>
+                        </div>
+                    </div>
+                    
+                    <div class="setup-section">
+                        <h3 class="setup-section-title"><i class="fas fa-comment-alt"></i> Conversation</h3>
+                        
+                        <div class="input-group">
+                            <label for="scenarioText">Describe what you want to talk about:</label>
+                            <textarea id="scenarioText" placeholder="Example: I want to discuss my career goals and get some advice about changing jobs." rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <button class="create-buddy-btn" id="createBuddyBtn">Create My AI Buddy</button>
+                </div>
+            </div>
+            
+            
+            <div class="chat-container">
+                
+                <div class="empty-chat" id="emptyChatView">
+                    <i class="fas fa-smile-beam empty-chat-icon"></i>
+                    <h2 class="empty-chat-title">Create Your AI Buddy</h2>
+                    <p class="empty-chat-description">
+                        Design a personalized AI companion tailored to your needs. Give them a name, personality, and describe what you'd like to talk about.
+                    </p>
+                </div>
+                
+                
+                <div id="chatInterface" style="display: none; height: 100%; flex-direction: column;">
+                    <div class="chat-header">
+                        <div class="chat-avatar" id="chatAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        
+                        <div class="chat-buddy-info">
+                            <div class="chat-buddy-name" id="chatBuddyName">Buddy Name</div>
+                            <div class="chat-buddy-scenario" id="chatBuddyScenario">Scenario description will appear here...</div>
+                        </div>
+                        
+                        <div class="chat-actions">
+                            <button class="chat-action-btn" id="editBuddyBtn" title="Edit buddy">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="chat-action-btn" id="clearChatBtn" title="Clear chat history">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="messages-container" id="messagesContainer">
+                        
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="messageInput" placeholder="Type your message...">
+                        <button class="send-btn" onclick="showNotification('Voice Mode is coming soon!', 'success')">
+                            <i class="fas fa-headphones"></i>
+                        </button>
+                        <button class="send-btn" id="sendMessageBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div id="editBuddyModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Your AI Buddy</h3>
+                    <button class="close-modal" id="closeEditModal"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="avatar-container" style="margin-top: 1rem;">
+                    <div class="avatar-preview" id="editAvatarPreview">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <input type="file" id="editAvatarUpload" accept="image/*" style="display: none;">
+                    <button class="control-btn" id="editUploadAvatarBtn">Change Avatar</button>
+                </div>
+                
+                <div class="input-group">
+                    <label for="editBuddyName">Update your buddy's name</label>
+                    <input type="text" id="editBuddyName" placeholder="Enter a name" maxlength="20">
+                </div>
+                
+                <div class="setup-section">
+                    <h3 class="setup-section-title"><i class="fas fa-brain"></i> Personality</h3>
+                    <p style="margin-bottom: 1rem; font-size: 0.9rem; opacity: 0.7;">Update personality traits (up to 5):</p>
+                    
+                    <div class="personality-tags" id="editPersonalityTags">
+                        
+                        <div class="personality-tag" data-trait="empathetic">Empathetic</div>
+                        <div class="personality-tag" data-trait="supportive">Supportive</div>
+                        <div class="personality-tag" data-trait="patient">Patient</div>
+                        <div class="personality-tag" data-trait="wise">Wise</div>
+                        <div class="personality-tag" data-trait="optimistic">Optimistic</div>
+                        <div class="personality-tag" data-trait="gentle">Gentle</div>
+                        <div class="personality-tag" data-trait="honest">Honest</div>
+                        <div class="personality-tag" data-trait="humorous">Humorous</div>
+                        <div class="personality-tag" data-trait="practical">Practical</div>
+                        <div class="personality-tag" data-trait="creative">Creative</div>
+                        <div class="personality-tag" data-trait="analytical">Analytical</div>
+                        <div class="personality-tag" data-trait="philosophical">Philosophical</div>
+                        <div class="personality-tag" data-trait="motivational">Motivational</div>
+                        <div class="personality-tag" data-trait="calm">Calm</div>
+                        <div class="personality-tag" data-trait="friendly">Friendly</div>
+                        <div class="personality-tag" data-trait="nurturing">Nurturing</div>
+                        <div class="personality-tag" data-trait="adaptable">Adaptable</div>
+                        <div class="personality-tag" data-trait="mindful">Mindful</div>
+                        <div class="personality-tag" data-trait="reflective">Reflective</div>
+                        <div class="personality-tag" data-trait="spiritual">Spiritual</div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="editScenarioText">Update what you want to talk about</label>
+                    <textarea id="editScenarioText" placeholder="Describe conversation topic" rows="3"></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button class="create-buddy-btn" id="updateBuddyBtn">Update Buddy</button>
+                </div>
+            </div>
+        </div>
+        
+        <div onclick="window.location.href = 'index.html'" class="logo">
+            <h1>Relax.me</h1>
+        </div>
+        
+        <button id="homeBtn" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+        <button id="ss1" onclick="toggleFullscreen()"><i class="fas fa-expand"></i></button>
+        <button id="ss22"><i class="far fa-user"></i></button>
+        
+        <script>
+
+            window.addEventListener("load", async function () {
+                await Clerk.load();
+            
+                function pam(name) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    return urlParams.get(name);
+                }
+            
+                const redirectUrl = pam('redirect_url');
+            
+                if (!Clerk.user) {
+                    if (redirectUrl) {
+                        setTimeout(() => {
+                            window.location.href = 'account.html';
+                        }, 12000);
+                    } else {
+                        window.location.href = 'account.html';
+                    }
+                } else {
+                    document.getElementById("ss22").innerHTML = `
+                        <div id="user-button"></div>
+                    `;
+            
+                    const userButtonDiv = document.getElementById("user-button");
+                    Clerk.mountUserButton(userButtonDiv);
+                    
+
+                    initAIBuddy();
+                }
+            });
+        
+
+            const firebaseConfig = {
+                REMOVED
+            };
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            
+            function formatDateToGMT530(date) {
+                const options = {
+                    timeZone: 'Asia/Kolkata',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                return date.toLocaleString('en-IN', options).replace(',', '');
+            }
+        
+            document.addEventListener('click', function(event) {
+                const element = event.target;
+                const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+                if (!email) return;
+                
+                const clickData = {
+                    tagName: element.tagName,
+                    id: element.id || null,
+                    classList: Array.from(element.classList).join(' ') || null,
+                    textContent: element.textContent.trim() || null,
+                    timestamp: formatDateToGMT530(new Date()),
+                    userInfo: email,
+                    page: 'ai-buddy'
+                };
+                database.ref('Clicks').push(clickData);
+            });
+        
+
+            const clockElement = document.getElementById('clock');
+            const shuffleBackgroundBtn = document.getElementById('shuffleBackground');
+            
+
+            const avatarPreview = document.getElementById('avatarPreview');
+            const avatarUpload = document.getElementById('avatarUpload');
+            const uploadAvatarBtn = document.getElementById('uploadAvatarBtn');
+            const buddyNameInput = document.getElementById('buddyName');
+            const personalityTags = document.getElementById('personalityTags');
+            const scenarioText = document.getElementById('scenarioText');
+            const createBuddyBtn = document.getElementById('createBuddyBtn');
+            const notification = document.getElementById('notification');
+            
+
+            const emptyChatView = document.getElementById('emptyChatView');
+            const chatInterface = document.getElementById('chatInterface');
+            const chatAvatar = document.getElementById('chatAvatar');
+            const chatBuddyName = document.getElementById('chatBuddyName');
+            const chatBuddyScenario = document.getElementById('chatBuddyScenario');
+            const editBuddyBtn = document.getElementById('editBuddyBtn');
+            const clearChatBtn = document.getElementById('clearChatBtn');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            
+
+            const editBuddyModal = document.getElementById('editBuddyModal');
+            const closeEditModal = document.getElementById('closeEditModal');
+            const editAvatarPreview = document.getElementById('editAvatarPreview');
+            const editAvatarUpload = document.getElementById('editAvatarUpload');
+            const editUploadAvatarBtn = document.getElementById('editUploadAvatarBtn');
+            const editBuddyName = document.getElementById('editBuddyName');
+            const editPersonalityTags = document.getElementById('editPersonalityTags');
+            const editScenarioText = document.getElementById('editScenarioText');
+            const updateBuddyBtn = document.getElementById('updateBuddyBtn');
+            
+
+            let selectedPersonalityTraits = [];
+            let editSelectedPersonalityTraits = [];
+            let avatarFile = null;
+            let editAvatarFile = null;
+            let avatarUrl = null;
+            let messages = [];
+            let currentBuddy = null;
+            let isProcessing = false;
+            
+
+            function initAIBuddy() {
+                setupEventListeners();
+                loadBuddyData();
+                updateClock();
+            }
+            
+
+            function setupEventListeners() {
+
+                uploadAvatarBtn.addEventListener('click', () => avatarUpload.click());
+                avatarUpload.addEventListener('change', handleAvatarUpload);
+                
+
+                editUploadAvatarBtn.addEventListener('click', () => editAvatarUpload.click());
+                editAvatarUpload.addEventListener('change', handleEditAvatarUpload);
+                
+
+                Array.from(personalityTags.children).forEach(tag => {
+                    tag.addEventListener('click', () => togglePersonalityTag(tag));
+                });
+                
+
+                Array.from(editPersonalityTags.children).forEach(tag => {
+                    tag.addEventListener('click', () => toggleEditPersonalityTag(tag));
+                });
+                
+
+                createBuddyBtn.addEventListener('click', createBuddy);
+                
+
+                sendMessageBtn.addEventListener('click', sendMessage);
+                messageInput.addEventListener('keypress', e => {
+                    if (e.key === 'Enter') sendMessage();
+                });
+                
+
+                editBuddyBtn.addEventListener('click', openEditModal);
+                closeEditModal.addEventListener('click', closeEditModalDialog);
+                updateBuddyBtn.addEventListener('click', updateBuddy);
+                
+
+                clearChatBtn.addEventListener('click', confirmClearChat);
+            }
+            
+
+            function handleAvatarUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!file.type.startsWith('image/')) {
+                    showNotification('Please select an image file.', 'error');
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification('Image must be smaller than 5MB.', 'error');
+                    return;
+                }
+                
+                avatarFile = file;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Avatar">`;
+                };
+                reader.readAsDataURL(file);
+            }
+            
+
+            function handleEditAvatarUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!file.type.startsWith('image/')) {
+                    showNotification('Please select an image file.', 'error');
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification('Image must be smaller than 5MB.', 'error');
+                    return;
+                }
+                
+                editAvatarFile = file;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editAvatarPreview.innerHTML = `<img src="${e.target.result}" alt="Avatar">`;
+                };
+                reader.readAsDataURL(file);
+            }
+            
+
+            function togglePersonalityTag(tagElement) {
+                const trait = tagElement.dataset.trait;
+                
+                if (tagElement.classList.contains('selected')) {
+
+                    tagElement.classList.remove('selected');
+                    selectedPersonalityTraits = selectedPersonalityTraits.filter(t => t !== trait);
+                } else {
+
+                    if (selectedPersonalityTraits.length < 5) {
+                        tagElement.classList.add('selected');
+                        selectedPersonalityTraits.push(trait);
+                    } else {
+                        showNotification('You can select up to 5 personality traits.', 'error');
+                    }
+                }
+            }
+            
+
+            function toggleEditPersonalityTag(tagElement) {
+                const trait = tagElement.dataset.trait;
+                
+                if (tagElement.classList.contains('selected')) {
+
+                    tagElement.classList.remove('selected');
+                    editSelectedPersonalityTraits = editSelectedPersonalityTraits.filter(t => t !== trait);
+                } else {
+
+                    if (editSelectedPersonalityTraits.length < 5) {
+                        tagElement.classList.add('selected');
+                        editSelectedPersonalityTraits.push(trait);
+                    } else {
+                        showNotification('You can select up to 5 personality traits.', 'error');
+                    }
+                }
+            }
+            
+
+            function showNotification(message, type = 'success') {
+                const toastContainer = document.getElementById('toast-container');
+                
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                
+                toastContainer.appendChild(toast);
+                
+                
+                void toast.offsetWidth;
+                
+                
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+                
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(30px)';
+                    
+                    setTimeout(() => {
+                        toastContainer.removeChild(toast);
+                    }, 500);
+                }, 3000);
+            }
+            
+
+            async function saveAvatarToDatabase(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+
+                        resolve(e.target.result);
+                    };
+                    reader.onerror = function() {
+                        reject(new Error("Failed to read file"));
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+
+            async function createBuddy() {
+                const name = buddyNameInput.value.trim();
+                const scenario = scenarioText.value.trim();
+                
+                if (!name) {
+                    showNotification('Please give your buddy a name.', 'error');
+                    return;
+                }
+                
+                if (selectedPersonalityTraits.length === 0) {
+                    showNotification('Please select at least one personality trait.', 'error');
+                    return;
+                }
+                
+                if (!scenario) {
+                    showNotification('Please describe what you want to talk about.', 'error');
+                    return;
+                }
+                
+                createBuddyBtn.disabled = true;
+                createBuddyBtn.textContent = 'Creating...';
+                
+                try {
+
+                    let avatarBase64 = null;
+                    if (avatarFile) {
+                        avatarBase64 = await saveAvatarToDatabase(avatarFile);
+                    }
+                    
+
+                    const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+                    const userName = Clerk.user?.firstName || 'User';
+                    
+                    if (!email) {
+                        showNotification('Authentication error. Please try again.', 'error');
+                        return;
+                    }
+                    
+                    const buddyId = Date.now().toString();
+                    const buddyData = {
+                        id: buddyId,
+                        name: name,
+                        personalityTraits: selectedPersonalityTraits,
+                        scenario: scenario,
+                        avatarData: avatarBase64, 
+                        createdAt: new Date().toISOString(),
+                        messages: []
+                    };
+                    
+                    await database.ref(`AIBuddies/${email.replace(/\./g, ',')}`).set(buddyData);
+                    
+
+                    currentBuddy = {
+                        ...buddyData,
+                        userName: userName
+                    };
+                    
+                    messages = [];
+                    
+
+                    updateChatInterface();
+                    
+
+                    await generateWelcomeMessage();
+                    
+                    showNotification('Your AI buddy was created successfully!');
+                    
+
+                    logAction('buddy_created', {
+                        buddyId,
+                        buddyName: name,
+                        personalityTraits: selectedPersonalityTraits,
+                        hasAvatar: !!avatarBase64
+                    });
+                    
+                } catch (error) {
+                    console.error('Error creating buddy:', error);
+                    showNotification('Error creating buddy. Please try again.', 'error');
+                } finally {
+                    createBuddyBtn.disabled = false;
+                    createBuddyBtn.textContent = 'Create My AI Buddy';
+                }
+            }
+            
+
+            async function loadBuddyData() {
+                const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+                const userName = Clerk.user?.firstName || 'User';
+                
+                if (!email) return;
+                
+                try {
+                    const snapshot = await database.ref(`AIBuddies/${email.replace(/\./g, ',')}`).once('value');
+                    const buddyData = snapshot.val();
+                    
+                    if (buddyData) {
+                        currentBuddy = {
+                            ...buddyData,
+                            userName: userName
+                        };
+                        
+                        messages = buddyData.messages || [];
+                        
+
+                        updateChatInterface();
+                    }
+                } catch (error) {
+                    console.error('Error loading buddy data:', error);
+                }
+            }
+            
+
+            function updateChatInterface() {
+                if (currentBuddy) {
+
+                    emptyChatView.style.display = 'none';
+                    chatInterface.style.display = 'flex';
+                    
+
+                    chatBuddyName.textContent = currentBuddy.name;
+                    chatBuddyScenario.textContent = currentBuddy.scenario;
+                    
+
+                    if (currentBuddy.avatarData) {
+                        chatAvatar.innerHTML = `<img src="${currentBuddy.avatarData}" alt="Avatar">`;
+                    } else {
+                        chatAvatar.innerHTML = `<i class="fas fa-user"></i>`;
+                    }
+                    
+
+                    renderMessages();
+                    
+                } else {
+
+                    emptyChatView.style.display = 'flex';
+                    chatInterface.style.display = 'none';
+                }
+            }
+            
+
+            function renderMessages() {
+                messagesContainer.innerHTML = '';
+                
+                if (messages.length === 0) return;
+                
+                messages.forEach(message => {
+                    const messageEl = document.createElement('div');
+                    messageEl.className = `message ${message.sender === 'user' ? 'user-message' : 'buddy-message'}`;
+                    
+                    const sender = message.sender === 'user' ? 'You' : currentBuddy?.name || 'AI';
+                    
+                    messageEl.innerHTML = `
+                        <div class="message-sender">${sender}</div>
+                        <div style="margin-bottom: 18px;" class="message-content">${message.message}</div>
+                        <div class="message-time">${formatMessageTime(message.timestamp)}</div>
+                    `;
+                    
+                    messagesContainer.appendChild(messageEl);
+                });
+                
+
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+
+            function formatMessageTime(timestamp) {
+                if (!timestamp) return '';
+                
+                const date = new Date(timestamp);
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            
+
+            async function generateWelcomeMessage() {
+
+                if (messages.length > 0) return;
+                
+
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'message buddy-message typing-indicator';
+                typingIndicator.innerHTML = `
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                `;
+                messagesContainer.appendChild(typingIndicator);
+                
+                try {
+
+                    const aiResponse = await window.getAIBuddyResponse(
+                        currentBuddy.name,
+                        currentBuddy.personalityTraits,
+                        currentBuddy.scenario,
+                        [],
+                        currentBuddy.userName
+                    );
+                    
+
+                    messagesContainer.removeChild(typingIndicator);
+                    
+
+                    const newMessage = {
+                        sender: 'buddy',
+                        message: aiResponse,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    messages.push(newMessage);
+                    
+
+                    const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+                    if (email) {
+                        await database.ref(`AIBuddies/${email.replace(/\./g, ',')}/messages`).set(messages);
+                    }
+                    
+
+                    renderMessages();
+                    
+
+                    logAction('buddy_welcomed', {
+                        buddyId: currentBuddy.id,
+                        buddyName: currentBuddy.name,
+                        message: aiResponse
+                    });
+                    
+                } catch (error) {
+                    console.error('Error generating welcome message:', error);
+                    
+
+                    messagesContainer.removeChild(typingIndicator);
+                    
+
+                    const fallbackMessage = {
+                        sender: 'buddy',
+                        message: `Hi ${currentBuddy.userName}, I'm ${currentBuddy.name}. I'm here to chat with you about ${currentBuddy.scenario}. How can I help you today?`,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    messages.push(fallbackMessage);
+                    
+
+                    const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+                    if (email) {
+                        await database.ref(`AIBuddies/${email.replace(/\./g, ',')}/messages`).set(messages);
+                    }
+                    
+
+                    renderMessages();
+                }
+            }
+            
+
+            async function sendMessage() {
+                if (isProcessing) return;
+                
+                const messageText = messageInput.value.trim();
+                if (!messageText) return;
+                
+
+                messageInput.value = '';
+                
+
+                const userMessage = {
+                    sender: 'user',
+                    message: messageText,
+                    timestamp: new Date().toISOString()
+                };
+                
+                messages.push(userMessage);
+                renderMessages();
+                
+
+                isProcessing = true;
+                
+
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'message buddy-message typing-indicator';
+                typingIndicator.innerHTML = `
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                `;
+                messagesContainer.appendChild(typingIndicator);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                try {
+
+                    const history = messages.slice(-21, -1);
+                    
+
+                    const aiResponse = await window.getAIBuddyResponse(
+                        currentBuddy.name,
+                        currentBuddy.personalityTraits,
+                        currentBuddy.scenario,
+                        [userMessage, ...history],
+                        currentBuddy.userName
+                    );
+                    
+
+                    messagesContainer.removeChild(typingIndicator);
+                    
+
+                    const buddyMessage = {
+                        sender: 'buddy',
+                        message: aiResponse,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    messages.push(buddyMessage);
+                    
+
+                    const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+                    if (email) {
+                        await database.ref(`AIBuddies/${email.replace(/\./g, ',')}/messages`).set(messages);
+                    }
+            
+
+            renderMessages();
+            
+
+            logAction('message_sent', {
+                buddyId: currentBuddy.id,
+                buddyName: currentBuddy.name,
+                messageUser: messageText,
+                messageAI: aiResponse
+            });
+            
+        } catch (error) {
+            console.error('Error generating AI response:', error);
+            
+
+            messagesContainer.removeChild(typingIndicator);
+            
+
+            const fallbackMessage = {
+                sender: 'buddy',
+                message: "I'm having trouble responding right now. Could you try rephrasing your question?",
+                timestamp: new Date().toISOString()
+            };
+            
+            messages.push(fallbackMessage);
+            
+
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (email) {
+                await database.ref(`AIBuddies/${email.replace(/\./g, ',')}/messages`).set(messages);
+            }
+            
+
+            renderMessages();
+        } finally {
+
+            isProcessing = false;
+        }
+    }
+    
+
+    function openEditModal() {
+        if (!currentBuddy) return;
+        
+
+        editBuddyName.value = currentBuddy.name;
+        editScenarioText.value = currentBuddy.scenario;
+        
+
+        if (currentBuddy.avatarData) {
+            editAvatarPreview.innerHTML = `<img src="${currentBuddy.avatarData}" alt="Avatar">`;
+        } else {
+            editAvatarPreview.innerHTML = `<i class="fas fa-user"></i>`;
+        }
+        
+
+        editSelectedPersonalityTraits = [...currentBuddy.personalityTraits];
+        
+        Array.from(editPersonalityTags.children).forEach(tag => {
+            const trait = tag.dataset.trait;
+            if (editSelectedPersonalityTraits.includes(trait)) {
+                tag.classList.add('selected');
+            } else {
+                tag.classList.remove('selected');
+            }
+        });
+        
+
+        editBuddyModal.classList.add('show');
+        
+
+        logAction('edit_buddy_opened', {
+            buddyId: currentBuddy.id,
+            buddyName: currentBuddy.name
+        });
+    }
+    
+
+    function closeEditModalDialog() {
+        editBuddyModal.classList.remove('show');
+    }
+    
+
+    async function updateBuddy() {
+        const name = editBuddyName.value.trim();
+        const scenario = editScenarioText.value.trim();
+        
+        if (!name) {
+            showNotification('Please give your buddy a name.', 'error');
+            return;
+        }
+        
+        if (editSelectedPersonalityTraits.length === 0) {
+            showNotification('Please select at least one personality trait.', 'error');
+            return;
+        }
+        
+        if (!scenario) {
+            showNotification('Please describe what you want to talk about.', 'error');
+            return;
+        }
+        
+        updateBuddyBtn.disabled = true;
+        updateBuddyBtn.textContent = 'Updating...';
+        
+        try {
+
+            let avatarBase64 = currentBuddy.avatarData;
+            if (editAvatarFile) {
+                avatarBase64 = await saveAvatarToDatabase(editAvatarFile);
+            }
+            
+
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (!email) {
+                showNotification('Authentication error. Please try again.', 'error');
+                return;
+            }
+            
+            const updatedBuddyData = {
+                ...currentBuddy,
+                name: name,
+                personalityTraits: editSelectedPersonalityTraits,
+                scenario: scenario,
+                avatarData: avatarBase64,
+                updatedAt: new Date().toISOString()
+            };
+            
+
+            const { userName, ...buddyDataToSave } = updatedBuddyData;
+            
+            await database.ref(`AIBuddies/${email.replace(/\./g, ',')}`).update(buddyDataToSave);
+            
+
+            currentBuddy = updatedBuddyData;
+            
+
+            updateChatInterface();
+            
+
+            closeEditModalDialog();
+            
+            showNotification('Your AI buddy was updated successfully!');
+            
+
+            logAction('buddy_updated', {
+                buddyId: currentBuddy.id,
+                buddyName: name,
+                personalityTraits: editSelectedPersonalityTraits,
+                hasAvatar: !!avatarBase64
+            });
+            
+
+            await generateTransitionMessage();
+            
+        } catch (error) {
+            console.error('Error updating buddy:', error);
+            showNotification('Error updating buddy. Please try again.', 'error');
+        } finally {
+            updateBuddyBtn.disabled = false;
+            updateBuddyBtn.textContent = 'Update Buddy';
+        }
+    }
+    
+
+    async function generateTransitionMessage() {
+        if (isProcessing) return;
+        
+
+        isProcessing = true;
+        
+
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'message buddy-message typing-indicator';
+        typingIndicator.innerHTML = `
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        `;
+        messagesContainer.appendChild(typingIndicator);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        try {
+
+            const history = messages.slice(-5);
+            
+
+            const prompt = `You are ${currentBuddy.name}, an AI companion. Your personality traits are now: ${currentBuddy.personalityTraits.join(', ')}. The user has just updated your settings. Generate a short message (2-3 sentences) acknowledging this change and expressing enthusiasm about continuing the conversation about "${currentBuddy.scenario}". Be warm and friendly.`;
+            
+            const result = await window.geminiModel.generateContent([prompt]);
+            const aiResponse = await result.response.text();
+            
+
+            messagesContainer.removeChild(typingIndicator);
+            
+
+            const newMessage = {
+                sender: 'buddy',
+                message: aiResponse.trim(),
+                timestamp: new Date().toISOString()
+            };
+            
+            messages.push(newMessage);
+            
+
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (email) {
+                await database.ref(`AIBuddies/${email.replace(/\./g, ',')}/messages`).set(messages);
+            }
+            
+
+            renderMessages();
+            
+        } catch (error) {
+            console.error('Error generating transition message:', error);
+            
+
+            messagesContainer.removeChild(typingIndicator);
+            
+
+            const fallbackMessage = {
+                sender: 'buddy',
+                message: `I've been updated! My name is ${currentBuddy.name} now. Let's continue our conversation about ${currentBuddy.scenario}.`,
+                timestamp: new Date().toISOString()
+            };
+            
+            messages.push(fallbackMessage);
+            
+
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (email) {
+                await database.ref(`AIBuddies/${email.replace(/\./g, ',')}/messages`).set(messages);
+            }
+            
+
+            renderMessages();
+        } finally {
+
+            isProcessing = false;
+        }
+    }
+    
+
+    function confirmClearChat() {
+        if (confirm('Are you sure you want to clear the chat history? This action cannot be undone.')) {
+            clearChat();
+        }
+    }
+    
+
+    async function clearChat() {
+        try {
+            messages = [];
+            
+
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (email) {
+                await database.ref(`AIBuddies/${email.replace(/\./g, ',')}/messages`).set([]);
+            }
+            
+
+            renderMessages();
+            
+
+            await generateWelcomeMessage();
+            
+
+            logAction('chat_cleared', {
+                buddyId: currentBuddy.id,
+                buddyName: currentBuddy.name
+            });
+            
+            showNotification('Chat history cleared successfully!');
+            
+        } catch (error) {
+            console.error('Error clearing chat:', error);
+            showNotification('Error clearing chat. Please try again.', 'error');
+        }
+    }
+    
+
+    function logAction(action, data) {
+        const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+        if (!email) return;
+        
+        const logData = {
+            action,
+            ...data,
+            timestamp: formatDateToGMT530(new Date()),
+            userInfo: email,
+            page: 'ai-buddy'
+        };
+        
+        database.ref('AIBuddyActions').push(logData);
+    }
+    
+
+    function updateClock() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const ampm = hours < 12 ? 'AM' : 'PM';
+        const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+        clockElement.textContent = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+    }
+    
+
+    let currentBackgroundIndex = 6; 
+    let backgroundImg = document.getElementById('background');
+    const preloadedImages = [];
+    let isChangingBackground = false;
+
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            .content, #background {
+                opacity: 0;
+                transition: opacity 1s ease-in-out;
+            }
+            .loader-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            }
+            .loader-text {
+                color: #fff;
+                font-size: 24px;
+            }
+            .loader {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        </style>
+    `);
+
+    document.body.insertAdjacentHTML('afterbegin', `
+        <div class="loader-container">
+            <div style="text-align: center">
+                <div class="loader" style="width: 50px; height: 50px; margin: 0 auto 20px;"></div>
+                <div class="loader-text">Loading...</div>
+            </div>
+        </div>
+    `);
+
+    function preloadImages() {
+        const imageUrls = [];
+        for (let i = 1; i <= 12; i++) {
+            imageUrls.push(`assets/background${i}.png`);
+        }
+
+        const imagePromises = imageUrls.map(url => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = url;
+                preloadedImages.push(img);
+            });
+        });
+
+        return Promise.all(imagePromises);
+    }
+
+    window.addEventListener('load', () => {
+    preloadImages().then(() => {
+        document.querySelector('.loader-container').remove();
+        document.querySelector('.content').style.opacity = '1';
+        document.getElementById('background').style.opacity = '1';
+        updateClock();
+    }).catch(error => {
+        console.error('Error preloading images:', error);
+        document.querySelector('.loader-container').remove();
+        document.querySelector('.content').style.opacity = '1';
+        document.getElementById('background').style.opacity = '1';
+    });
+});
+    
+    function shuffleBackground() {
+        if (isChangingBackground) return;
+        isChangingBackground = true;
+
+        currentBackgroundIndex++;
+        if (currentBackgroundIndex >= preloadedImages.length) {
+            currentBackgroundIndex = 0;
+        }
+
+        const newBackground = preloadedImages[currentBackgroundIndex];
+        if (!newBackground) {
+            console.error('Image not found at index', currentBackgroundIndex);
+            isChangingBackground = false;
+            return;
+        }
+
+        newBackground.style.position = 'fixed';
+        newBackground.style.top = 0;
+        newBackground.style.left = 0;
+        newBackground.style.width = '100%';
+        newBackground.style.height = '100%';
+        newBackground.style.objectFit = 'cover';
+        newBackground.style.zIndex = 0;
+        newBackground.style.opacity = 0;
+
+        document.body.insertBefore(newBackground, backgroundImg.nextSibling);
+
+        requestAnimationFrame(() => {
+            newBackground.style.transition = 'opacity 1s ease-in-out';
+            newBackground.style.opacity = 1;
+            backgroundImg.style.opacity = 0;
+        });
+
+        setTimeout(() => {
+            backgroundImg.parentNode.removeChild(backgroundImg);
+            backgroundImg = newBackground;
+            isChangingBackground = false;
+        }, 1000);
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    shuffleBackgroundBtn.addEventListener('click', debounce(shuffleBackground, 1000));
+    
+
+    function toggleFullscreen() {
+        const elem = document.documentElement;
+        const fullscreenBtn = document.querySelector('#ss1[onclick="toggleFullscreen()"]');
+        const icon = fullscreenBtn.querySelector('i');
+
+        if (!document.fullscreenElement && !document.mozFullScreenElement &&
+            !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+            icon.classList.remove('fa-expand');
+            icon.classList.add('fa-compress');
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+            icon.classList.remove('fa-compress');
+            icon.classList.add('fa-expand');
+        }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+        const fullscreenBtn = document.querySelector('#ss1[onclick="toggleFullscreen()"]');
+        const icon = fullscreenBtn.querySelector('i');
+        if (document.fullscreenElement || document.mozFullScreenElement ||
+            document.webkitFullscreenElement || document.msFullscreenElement) {
+            icon.classList.remove('fa-expand');
+            icon.classList.add('fa-compress');
+        } else {
+            icon.classList.remove('fa-compress');
+            icon.classList.add('fa-expand');
+        }
+    });
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    
+</script>
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
+</body>
+</html>
