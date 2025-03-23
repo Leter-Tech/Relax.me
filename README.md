@@ -10,7 +10,7 @@
 
 [Live Demo >](https://relax-me-web.web.app/)
 
-> **Note:** API keys and database credentials have been omitted from the codebase for security reasons.
+> **Note:** API keys, image/audio assets and database credentials have been omitted from the codebase because of file size limitations and security reasons.
 
 ---
 
