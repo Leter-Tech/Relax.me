@@ -137,7 +137,7 @@ Relax.me offers a complete emotional care system through:
 
 - Relax.me is a fully installable PWA
 
-- Works seamlessly offline after first load
+- Some features seamlessly work offline after first load
 
 - Add to home screen on mobile or desktop for native app-like experience
 
@@ -185,7 +185,7 @@ graph TD
 
 - **Authentication & User Management:** Clerk
 
-- **PWA (Installability + Offline Support):** Powered by service workers and web manifest for native-like experience
+- **PWA (Progressive Web App):** Powered by service workers and web manifest for native-like experience
 
 ---
 
