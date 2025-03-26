@@ -135,7 +135,7 @@ Relax.me offers a complete emotional care system through:
 
 ### 📱 Progressive Web App (PWA) Support
 
-- Relax.me is now a fully installable PWA
+- Relax.me is a fully installable PWA
 
 - Works seamlessly offline after first load
 
