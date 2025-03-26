@@ -133,6 +133,18 @@ Relax.me offers a complete emotional care system through:
 
 - Provides international mental health helpline options with one-tap access  
 
+### 📱 Progressive Web App (PWA) Support
+
+- Relax.me is now a fully installable PWA
+
+- Works seamlessly offline after first load
+
+- Add to home screen on mobile or desktop for native app-like experience
+
+- Fast load times, background sync, and app shell architecture
+
+- Improves accessibility and availability, even with limited connectivity
+
 ---
 
 ## 🛠️ **Technology Stack**
@@ -146,6 +158,7 @@ graph TD
     C -->|Live Location SMS| F[Google Maps API]
     B -->|Authentication| G[Clerk]
     B -->|UI & Visuals| H[Font Awesome & Google Fonts]
+    B -->|Installable App| I[PWA: Progressive Web App]
 
     style A fill:#0097b2,color:white
     style B fill:#0097b2,color:white
@@ -155,6 +168,7 @@ graph TD
     style F fill:#0097b2,color:white
     style G fill:#0097b2,color:white
     style H fill:#0097b2,color:white
+    style I fill:#0097b2,color:white
 ```
 
 - **Frontend:** HTML + CSS  
@@ -170,6 +184,8 @@ graph TD
 - **Icons & Fonts:** Font Awesome and Google Fonts  
 
 - **Authentication & User Management:** Clerk
+
+- **PWA (Installability + Offline Support):** Powered by service workers and web manifest for native-like experience
 
 ---
 
