@@ -133,7 +133,7 @@ Relax.me offers a complete emotional care system through:
 
 - Provides international mental health helpline options with one-tap access  
 
-### 📱 Progressive Web App (PWA) Support
+### 📱 Progressive Web App (PWA)
 
 - Relax.me is a fully installable PWA
 
