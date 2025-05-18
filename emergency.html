@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relax.me - Emergency</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>    
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="REMOVED"
+    src="REMOVED"
+    type="text/javascript"
+    ></script>
+    <script>
+        window.addEventListener("load", async function () {
+            await Clerk.load();
+        
+            function pam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+        
+            const redirectUrl = pam('redirect_url');
+        
+            if (!Clerk.user) {
+                if (redirectUrl) {
+                    setTimeout(() => {
+                        window.location.href = 'account.html';
+                    }, 12000);
+                } else {
+                    window.location.href = 'account.html';
+                }
+            } else {
+                document.getElementById("ss22").innerHTML = `
+                    <div id="user-button"></div>
+                `;
+        
+                const userButtonDiv = document.getElementById("user-button");
+                Clerk.mountUserButton(userButtonDiv);
+            }
+        });
+    
+        const firebaseConfig = {
+            REMOVED
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    
+        function formatDateToGMT530(date) {
+            const options = {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            return date.toLocaleString('en-IN', options).replace(',', '');
+        }
+    
+        document.addEventListener('click', function(event) {
+            const element = event.target;
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (!email) return;
+            
+            const clickData = {
+                tagName: element.tagName,
+                id: element.id || null,
+                classList: Array.from(element.classList).join(' ') || null,
+                textContent: element.textContent.trim() || null,
+                timestamp: formatDateToGMT530(new Date()),
+                userInfo: email,
+                page: document.title
+            };
+            database.ref('Clicks').push(clickData);
+        });
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        .content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 2rem;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #clock {
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+        }
+        
+        .emergency-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .header-section p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .emergency-button {
+            width: 100%;
+            background: linear-gradient(135deg, rgba(255, 80, 80, 0.8), rgba(200, 40, 40, 0.8));
+            border: none;
+            color: white;
+            padding: 1.2rem;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(200, 0, 0, 0.2);
+        }
+        
+        .emergency-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(200, 0, 0, 0.3);
+        }
+        
+        .emergency-button i {
+            margin-right: 10px;
+            font-size: 1.6rem;
+        }
+        
+        .tools-section {
+            width: 100%;
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+        }
+        
+        .tool-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .tool-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tool-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .tool-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .tool-desc {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .contacts-section {
+            width: 100%;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .contacts-section h2 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        
+        .contacts-list {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .contact-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+        
+        .contact-icon i {
+            font-size: 1.2rem;
+        }
+        
+        .contact-info {
+            flex-grow: 1;
+        }
+        
+        .contact-name {
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        .contact-number {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .contact-action {
+            margin-left: 1rem;
+        }
+        
+        .contact-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .contact-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 530px;
+            padding: 2rem;
+            position: relative;
+            transform: translateY(50px);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            color: rgb(106, 105, 105);
+        }
+        
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-body p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .modal-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        
+        .modal-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .modal-button.confirm {
+            background: linear-gradient(135deg, rgba(255, 80, 80, 0.8), rgba(200, 40, 40, 0.8));
+            margin-left: 1rem;
+        }
+        
+        .modal-button.confirm:hover {
+            background: linear-gradient(135deg, rgba(255, 100, 100, 0.8), rgba(220, 60, 60, 0.8));
+        }
+
+        #ss1 {
+            position: fixed;
+            bottom: 2rem;
+            right: 4.7rem;
+            z-index: 11;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        #ss1:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #ss22 {
+            position: fixed;
+            bottom: 2.1rem;
+            right: 2rem;
+            z-index: 11;
+            background-color: rgba(255, 255, 255, 0);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        #homeBtn {
+            position: fixed;
+            bottom: 2rem;
+            right: 8rem;
+            z-index: 11;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        #homeBtn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .cl-internal-1tk6k0j{
+            display: none;
+        }
+        .cl-userButtonPopoverFooter{
+            display: none;
+        }
+        .cl-internal-b3fm6y{
+            display: none;
+        }
+        @font-face {
+            font-family: Gidiff;
+            src: url("GlacialIndifference-Regular.otf") format("opentype");
+        }
+        .logo {
+            cursor: pointer;
+            width: max-content;
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 11;
+        }
+        .logo h1 {
+            font-family: 'Gidiff', sans-serif;
+            font-size: 25px;
+            color: white;
+            margin: 0;
+            font-weight: 400 !important;
+        }
+        input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <style>
+    
+        .zoom-notification {
+            --primary-color: #333;
+            --secondary-color: rgb(221, 221, 221);
+            font-family: 'Arial', sans-serif;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(199, 197, 198, 0.2);
+            z-index: 9999999999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .zoom-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 550px;
+        }
+
+        .zoom-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .zoom-content p {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .key {
+            display: inline-block;
+            background-color: #f0f0f0;
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            padding: 8px 15px;
+            margin: 0 5px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 18px;
+            color: #333333;
+            box-shadow: 0 4px 0 #d0d0d0;
+            transition: all 0.1s ease;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .key:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d0d0d0;
+        }
+
+        .icon-zoom {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .width-info {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--primary-color);
+        }
+
+        #CurrentHeight, #requiredHeight {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #CurrentWidth, #requiredWidth {
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+    <div class="zoom-notification" id="zoomNotification">
+        <div class="zoom-content">
+        <div class="icon-zoom">🔍</div>
+        <h2>Please Adjust Your Viewport</h2>
+        <p style="font-size: 14px;">For the best experience, press these keys together on your keyboard until your current height reaches the required width:</p>
+        <p><span class="key">CTRL</span> and <span class="key">-</span></p>
+        <div class="width-info">
+        <p>Current Height: <span id="CurrentHeight"></span><strong>px</strong></p>
+        <p>Required Height: <span id="CurrentHeight">826</span><strong>px</strong></p>
+        <hr>
+        <p>Current Width: <span id="CurrentWidth"></span><strong>px</strong></p>
+        <p>Required Width: <span id="CurrentWidth">1430</span><strong>px</strong></p>
+
+        </div>
+        </div>
+        </div>
+        <script>
+            const zoomNotification = document.getElementById('zoomNotification');
+            const CurrentHeightSpan = document.getElementById('CurrentHeight');
+            const CurrentWidthSpan = document.getElementById('CurrentWidth');
+
+            function checkViewportWidth() {
+                const CurrentHeight = window.innerHeight;
+                const CurrentWidth = window.innerWidth;
+                CurrentHeightSpan.textContent = CurrentHeight;
+                CurrentWidthSpan.textContent = CurrentWidth;
+    
+                if (CurrentHeight < 826 || CurrentWidth < 1430) {
+                    zoomNotification.style.display = 'flex';
+                } else {
+                    zoomNotification.style.display = 'none';
+                }
+            }
+    
+            window.addEventListener('resize', checkViewportWidth);
+            window.addEventListener('load', checkViewportWidth);
+        </script>
+
+
+    <img id="background" src="assets/background9.png" alt="background">
+    <div class="overlay"></div>
+    <div class="content">
+        <div class="top-bar">
+            <div id="clock"></div>
+            <button class="control-btn" id="shuffleBackground"><i style="margin-right: 3px;" class="fas fa-image"></i> Change Background</button>
+        </div>
+        
+        <div class="emergency-container">
+            <div class="header-section">
+                <h1>Panic Support</h1>
+                <p>If you're experiencing a panic attack or severe anxiety, we're here to help. Use the panic button for immediate support or try one of our grounding techniques.</p>
+            </div>
+            
+            <button id="panicButton" class="emergency-button">
+                <i class="fas fa-exclamation-circle"></i> Emergency Panic Button
+            </button>
+            
+            
+            <div class="tools-section">
+                <div class="tools-grid">
+                    <div class="tool-card" onclick="window.location.href='breathing.html'">
+                        <div class="tool-icon"><i class="fas fa-wind"></i></div>
+                        <h3 class="tool-title">Breathing Exercise</h3>
+                        <p class="tool-desc">Guided breathing to slow heart rate and calm anxiety</p>
+                    </div>
+                    
+                    <div class="tool-card" id="groundingTechniqueCard">
+                        <div class="tool-icon"><i class="fas fa-heart"></i></div>
+                        <h3 class="tool-title">5-4-3-2-1 Grounding</h3>
+                        <p class="tool-desc">Use your senses to ground yourself in the present moment</p>
+                    </div>
+                    
+                    <div class="tool-card" onclick="window.location.href='ambient.html'">
+                        <div class="tool-icon"><i class="fas fa-music"></i></div>
+                        <h3 class="tool-title">Ambient Mode</h3>
+                        <p class="tool-desc">Listen to soothing sounds to reduce anxiety</p>
+                    </div>
+                    
+                    <div class="tool-card" id="emergencyContactsCard">
+                        <div class="tool-icon"><i class="fas fa-phone-alt"></i></div>
+                        <h3 class="tool-title">Emergency Contacts</h3>
+                        <p class="tool-desc">Contact your trusted emergency support network</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contacts-section">
+                <h2>International Crisis Helplines</h2>
+                <div class="contacts-list">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4 class="contact-name">Find a Helpline</h4>
+                            <p class="contact-number">Free calls, texting and online chat support worldwide</p>
+                        </div>
+                        <div class="contact-action">
+                            <button class="contact-button" onclick="window.open('https://findahelpline.com/', '_blank')">Get Help</button>
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4 class="contact-name">Befrienders Worldwide</h4>
+                            <p class="contact-number">Local helplines in 70+ countries</p>
+                        </div>
+                        <div class="contact-action">
+                            <button class="contact-button" onclick="window.open('https://www.befrienders.org/', '_blank')">Get Help</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div onclick="window.location.href = 'index.html'" class="logo">
+        <h1>Relax.me</h1>
+    </div>
+    
+    <button id="homeBtn" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+    <button id="ss1" onclick="toggleFullscreen()"><i class="fas fa-expand"></i></button>
+    <button id="ss22"><i class="far fa-user"></i></button>
+    
+    
+    <div id="panicModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('panicModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h3>Emergency Support</h3>
+                <p>Would you like to contact emergency support?</p>
+            </div>
+            <div class="modal-body">
+                <p>This will send an alert to your emergency contacts with your current location.</p>
+                <p>You can also call a crisis helpline directly for immediate support.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" onclick="closeModal('panicModal')">Cancel</button>
+                <button class="modal-button confirm" onclick="activateEmergencyProtocol()">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="groundingModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('groundingModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h3>5-4-3-2-1 Grounding Technique</h3>
+            </div>
+            <div class="modal-body">
+                <p><strong>5:</strong> Acknowledge FIVE things you see around you.</p>
+                <p><strong>4:</strong> Acknowledge FOUR things you can touch around you.</p>
+                <p><strong>3:</strong> Acknowledge THREE things you hear.</p>
+                <p><strong>2:</strong> Acknowledge TWO things you can smell.</p>
+                <p><strong>1:</strong> Acknowledge ONE thing you can taste.</p>
+                <p>Take deep breaths between each step. This technique helps bring you back to the present moment.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" onclick="closeModal('groundingModal')">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="contactsModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('contactsModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h3>Your Emergency Contacts</h3>
+            </div>
+            <div class="modal-body">
+                <div class="contacts-list">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4 class="contact-name">Primary Contact</h4>
+                            <p class="contact-number">Add your emergency contact</p>
+                        </div>
+                        <div class="contact-action">
+                            <button class="contact-button" id="addContactBtn">Add</button>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4 class="contact-name">Your Therapist</h4>
+                            <p class="contact-number">Add your therapist's number</p>
+                        </div>
+                        <div class="contact-action">
+                            <button class="contact-button" id="addTherapistBtn">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" onclick="closeModal('contactsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="addContactModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('addContactModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h3 id="contactModalTitle">Add Emergency Contact</h3>
+            </div>
+            <div class="modal-body">
+                <form id="contactForm" onsubmit="submitContactForm(event)">
+                    <div style="margin-bottom: 15px;">
+                        <label for="contactName" style="display: block; margin-bottom: 5px;">Name:</label>
+                        <input type="text" id="contactName" required style="width: 100%; padding: 8px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="contactNumber" style="display: block; margin-bottom: 5px;">Phone Number:</label>
+                        <input type="tel" id="contactNumber" required style="width: 100%; padding: 8px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                    </div>
+                    <input type="hidden" id="contactType" value="">
+                    <div class="modal-footer">
+                        <button type="button" class="modal-button" onclick="closeModal('addContactModal')">Cancel</button>
+                        <button type="submit" class="modal-button confirm">Save Contact</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFullscreen() {
+            const elem = document.documentElement;
+            const fullscreenBtn = document.querySelector('#ss1[onclick="toggleFullscreen()"]');
+            const icon = fullscreenBtn.querySelector('i');
+
+            if (!document.fullscreenElement && !document.mozFullScreenElement &&
+                !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                }
+                icon.classList.remove('fa-expand');
+                icon.classList.add('fa-compress');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                icon.classList.remove('fa-compress');
+                icon.classList.add('fa-expand');
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const fullscreenBtn = document.querySelector('#ss1[onclick="toggleFullscreen()"]');
+            const icon = fullscreenBtn.querySelector('i');
+            if (document.fullscreenElement || document.mozFullScreenElement ||
+                document.webkitFullscreenElement || document.msFullscreenElement) {
+                icon.classList.remove('fa-expand');
+                icon.classList.add('fa-compress');
+            } else {
+                icon.classList.remove('fa-compress');
+                icon.classList.add('fa-expand');
+            }
+        });
+
+        const clockElement = document.getElementById('clock');
+        const shuffleBackgroundBtn = document.getElementById('shuffleBackground');
+        const panicBtn = document.getElementById('panicButton');
+        const groundingTechniqueCard = document.getElementById('groundingTechniqueCard');
+        const emergencyContactsCard = document.getElementById('emergencyContactsCard');
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours < 12 ? 'AM' : 'PM';
+            const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+            clockElement.textContent = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+        }
+
+        let currentBackgroundIndex = 5; 
+        let backgroundImg = document.getElementById('background');
+        const preloadedImages = [];
+        let isChangingBackground = false;
+
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                .content, #background {
+                    opacity: 0;
+                    transition: opacity 1s ease-in-out;
+                }
+                .loader {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: #000;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                }
+                .loader-text {
+                    color: #fff;
+                    font-size: 24px;
+                }
+            </style>
+        `);
+
+        document.body.insertAdjacentHTML('afterbegin', `
+            <div class="loader">
+                <div style="justify-content: center">
+                    <div class="loader-text">Loading...</div>
+                </div>
+            </div>
+        `);
+
+        function preloadImages() {
+            const imageUrls = [];
+            for (let i = 1; i <= 12; i++) {
+                imageUrls.push(`assets/background${i}.png`);
+            }
+
+            const imagePromises = imageUrls.map(url => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = url;
+                    preloadedImages.push(img);
+                });
+            });
+
+            return Promise.all(imagePromises);
+        }
+
+        window.addEventListener('load', () => {
+            preloadImages().then(() => {
+                document.querySelector('.loader').remove();
+                document.querySelector('.content').style.opacity = '1';
+                document.getElementById('background').style.opacity = '1';
+                updateClock();
+            }).catch(error => {
+                console.error('Error preloading images:', error);
+                document.querySelector('.loader').remove();
+                document.querySelector('.content').style.opacity = '1';
+                document.getElementById('background').style.opacity = '1';
+            });
+        });
+
+        function shuffleBackground() {
+            if (isChangingBackground) return;
+            isChangingBackground = true;
+
+            currentBackgroundIndex++;
+            if (currentBackgroundIndex >= preloadedImages.length) {
+                currentBackgroundIndex = 0;
+            }
+
+            const newBackground = preloadedImages[currentBackgroundIndex];
+            if (!newBackground) {
+                console.error('Image not found at index', currentBackgroundIndex);
+                isChangingBackground = false;
+                return;
+            }
+
+            newBackground.style.position = 'fixed';
+            newBackground.style.top = 0;
+            newBackground.style.left = 0;
+            newBackground.style.width = '100%';
+            newBackground.style.height = '100%';
+            newBackground.style.objectFit = 'cover';
+            newBackground.style.zIndex = 0;
+            newBackground.style.opacity = 0;
+
+            document.body.insertBefore(newBackground, backgroundImg.nextSibling);
+
+            requestAnimationFrame(() => {
+                newBackground.style.transition = 'opacity 1s ease-in-out';
+                newBackground.style.opacity = 1;
+                backgroundImg.style.opacity = 0;
+            });
+
+            setTimeout(() => {
+                backgroundImg.parentNode.removeChild(backgroundImg);
+                backgroundImg = newBackground;
+                isChangingBackground = false;
+            }, 1000);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
+            
+
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+        }
+        
+
+        function callNumber(number) {
+            if (confirm(`Are you sure you want to call ${number}?`)) {
+                window.location.href = `tel:${number}`;
+            }
+        }
+        
+        function sendSMS(number, message) {
+            if (confirm(`Are you sure you want to text ${number}?`)) {
+                window.location.href = `sms:${number}?body=${encodeURIComponent(message)}`;
+            }
+        }
+        
+
+        function activateEmergencyProtocol() {
+
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (!email) return;
+            
+            database.ref('EmergencyContacts').child(email.replace(/\./g, ',')).once('value')
+                .then((snapshot) => {
+                    const contacts = snapshot.val() || {};
+                    
+
+                    if (contacts.primary || contacts.therapist) {
+
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition((position) => {
+                                const location = {
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude,
+                                    mapLink: `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`
+                                };
+                                
+
+                                const emergencyData = {
+                                    timestamp: formatDateToGMT530(new Date()),
+                                    userInfo: email,
+                                    location: location,
+                                    status: 'initiated'
+                                };
+                                
+                                database.ref('EmergencyEvents').push(emergencyData)
+                                    .then(() => {
+                                        alert("Emergency alert sent to your contacts. Stay calm, help is on the way.");
+                                        
+
+                                        if (contacts.primary && contacts.primary.number) {
+                                            const message = `EMERGENCY ALERT: ${email} needs help. Location: ${location.mapLink}`;
+                                            sendSMS(contacts.primary.number, message);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.error("Error sending emergency alert:", error);
+                                        alert("Error sending emergency alert. Please call emergency services directly.");
+                                    });
+                            }, (error) => {
+                                console.error("Error getting location:", error);
+                                
+
+                                const emergencyData = {
+                                    timestamp: formatDateToGMT530(new Date()),
+                                    userInfo: email,
+                                    status: 'initiated_no_location'
+                                };
+                                
+                                database.ref('EmergencyEvents').push(emergencyData)
+                                    .then(() => {
+                                        alert("Emergency alert sent to your contacts. Stay calm, help is on the way.");
+                                    });
+                            });
+                        } else {
+
+                            alert("Unable to get your location. Please call emergency services directly.");
+                        }
+                    } else {
+
+                        alert("No emergency contacts configured. Please add contacts in the settings or call emergency services directly.");
+                        closeModal('panicModal');
+                        openModal('contactsModal');
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error retrieving emergency contacts:", error);
+                    alert("Error retrieving your emergency contacts. Please call emergency services directly.");
+                });
+        }
+        
+
+        function addEmergencyContact(type) {
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (!email) return;
+            
+
+            document.getElementById('contactModalTitle').textContent = 
+                `Add ${type.charAt(0).toUpperCase() + type.slice(1)} Contact`;
+            document.getElementById('contactType').value = type;
+            
+
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactNumber').value = '';
+            
+
+            openModal('addContactModal');
+        }
+        
+
+        function submitContactForm(event) {
+            event.preventDefault();
+            
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (!email) return;
+            
+            const name = document.getElementById('contactName').value;
+            const number = document.getElementById('contactNumber').value;
+            const type = document.getElementById('contactType').value;
+            
+            const contactData = {
+                name: name,
+                number: number,
+                added: formatDateToGMT530(new Date())
+            };
+            
+            database.ref(`EmergencyContacts/${email.replace(/\./g, ',')}`).update({
+                [type]: contactData
+            })
+            .then(() => {
+
+                closeModal('addContactModal');
+                
+
+                const successMessage = document.createElement('div');
+                successMessage.style.position = 'fixed';
+                successMessage.style.bottom = '20px';
+                successMessage.style.left = '50%';
+                successMessage.style.transform = 'translateX(-50%)';
+                successMessage.style.background = 'rgba(50, 200, 50, 0.8)';
+                successMessage.style.color = 'white';
+                successMessage.style.padding = '10px 20px';
+                successMessage.style.borderRadius = '25px';
+                successMessage.style.zIndex = '1000';
+                successMessage.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)} contact saved successfully`;
+                document.body.appendChild(successMessage);
+                
+                setTimeout(() => {
+                    successMessage.style.opacity = '0';
+                    successMessage.style.transition = 'opacity 0.5s';
+                    setTimeout(() => {
+                        document.body.removeChild(successMessage);
+                    }, 500);
+                }, 3000);
+                
+
+                updateEmergencyContactsUI();
+            })
+            .catch((error) => {
+                console.error("Error adding contact:", error);
+                alert("Error adding contact. Please try again.");
+            });
+        }
+        
+
+        function updateEmergencyContactsUI() {
+            const email = Clerk.user?.emailAddresses[0]?.emailAddress;
+            if (!email) return;
+            
+            database.ref('EmergencyContacts').child(email.replace(/\./g, ',')).once('value')
+                .then((snapshot) => {
+                    const contacts = snapshot.val() || {};
+                    
+
+                    const primaryContactElement = document.querySelector('#contactsModal .contact-item:first-child');
+                    if (primaryContactElement) {
+                        const nameElement = primaryContactElement.querySelector('.contact-name');
+                        const numberElement = primaryContactElement.querySelector('.contact-number');
+                        const buttonElement = primaryContactElement.querySelector('.contact-button');
+                        
+                        if (contacts.primary) {
+                            nameElement.textContent = contacts.primary.name;
+                            numberElement.textContent = contacts.primary.number;
+                            buttonElement.textContent = 'Edit';
+                            buttonElement.onclick = () => addEmergencyContact('primary');
+                        } else {
+                            nameElement.textContent = 'Primary Contact';
+                            numberElement.textContent = 'Add your emergency contact';
+                            buttonElement.textContent = 'Add';
+                            buttonElement.onclick = () => addEmergencyContact('primary');
+                        }
+                    }
+                    
+
+                    const therapistContactElement = document.querySelector('#contactsModal .contact-item:nth-child(2)');
+                    if (therapistContactElement) {
+                        const nameElement = therapistContactElement.querySelector('.contact-name');
+                        const numberElement = therapistContactElement.querySelector('.contact-number');
+                        const buttonElement = therapistContactElement.querySelector('.contact-button');
+                        
+                        if (contacts.therapist) {
+                            nameElement.textContent = contacts.therapist.name;
+                            numberElement.textContent = contacts.therapist.number;
+                            buttonElement.textContent = 'Edit';
+                            buttonElement.onclick = () => addEmergencyContact('therapist');
+                        } else {
+                            nameElement.textContent = 'Your Therapist';
+                            numberElement.textContent = 'Add your therapist\'s number';
+                            buttonElement.textContent = 'Add';
+                            buttonElement.onclick = () => addEmergencyContact('therapist');
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error retrieving emergency contacts:", error);
+                });
+        }
+
+
+        shuffleBackgroundBtn.addEventListener('click', debounce(shuffleBackground, 1000));
+        panicBtn.addEventListener('click', () => openModal('panicModal'));
+        groundingTechniqueCard.addEventListener('click', () => openModal('groundingModal'));
+        emergencyContactsCard.addEventListener('click', () => {
+            updateEmergencyContactsUI();
+            openModal('contactsModal');
+        });
+        
+        document.getElementById('addContactBtn').addEventListener('click', () => addEmergencyContact('primary'));
+        document.getElementById('addTherapistBtn').addEventListener('click', () => addEmergencyContact('therapist'));
+        
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
