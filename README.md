@@ -82,6 +82,18 @@ Relax.me offers a complete emotional care system through:
 
 - You can rename or reconfigure your buddy anytime to match evolving needs  
 
+### 🗣️ Voice AI
+
+- Have real-time voice conversations with your AI Buddy
+
+- AI responds with natural, emotionally intelligent speech — making conversations feel warmer & personal
+
+- Ideal when users prefer talking over typing, especially during emotional moments
+
+- Voice pitch, tone, and pace change based on the emotion behind its own words
+
+- Adds vocal nuance for more human-like, comforting interaction
+
 ### 📔 Daily Journal AI
 
 - Write journal entries with automated emotions tagging (anxious, hopeful, grateful, etc) 
@@ -155,20 +167,22 @@ graph TD
     B -->|App Logic| C[Backend: JavaScript]
     C -->|Realtime Sync| D[Firebase Realtime Database]
     C -->|Daily Journal AI + AI Buddy| E[Highly Finetuned Google Gemini Flash 2]
+    C -->|Speech Intelligence| J[Eleven Labs Flash V2 for Voice AI]
     C -->|Live Location SMS| F[Google Maps API]
     B -->|Authentication| G[Clerk]
     B -->|UI & Visuals| H[Font Awesome & Google Fonts]
     B -->|Installable App| I[PWA: Progressive Web App]
 
-    style A fill:#0097b2,color:white
-    style B fill:#0097b2,color:white
-    style C fill:#0097b2,color:white
-    style D fill:#0097b2,color:white
-    style E fill:#0097b2,color:white
-    style F fill:#0097b2,color:white
-    style G fill:#0097b2,color:white
-    style H fill:#0097b2,color:white
-    style I fill:#0097b2,color:white
+    style A fill:#0097b2,color:white,stroke:#333
+    style B fill:#0097b2,color:white,stroke:#333
+    style C fill:#0097b2,color:white,stroke:#333
+    style D fill:#0097b2,color:white,stroke:#333
+    style E fill:#0097b2,color:white,stroke:#333
+    style F fill:#0097b2,color:white,stroke:#333
+    style G fill:#0097b2,color:white,stroke:#333
+    style H fill:#0097b2,color:white,stroke:#333
+    style I fill:#0097b2,color:white,stroke:#333
+    style J fill:#0097b2,color:white,stroke:#333
 ```
 
 - **Frontend:** HTML + CSS  
@@ -176,6 +190,8 @@ graph TD
 - **Backend:** JavaScript  
 
 - **AI Models (Chat, Sentiment, Summary):** Highly Finetuned Google Gemini Flash 2  
+
+- **Speech Intelligence:** Eleven Labs Flash V2 for real-time speech generation and vocal emotion modulation
 
 - **Database:** Firebase Realtime Database  
 
